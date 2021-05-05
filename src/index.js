@@ -1,5 +1,30 @@
 /**
- * Runs some magic to get the real functor in our hands and to bind the right context.
+ * Arrow functions can't be rebound to a new context.  We want to be
+ * able to do this to make the decorators more obvious in their use for
+ * simple statements.
+ *
+ * The rebinding mechanism proposed here will not be easily understood
+ * by static analysis tools.  Yet it's the closest we have to creating
+ * something easy to understand.
+ */
+function bindable(functor) {
+  if( !functor.prototype ) {
+    // it's an arrow-function and we will do trickery
+    // https://stackoverflow.com/questions/33308121/can-you-bind-this-in-an-arrow-function
+    const bindableFunction = function () {
+      const redefinedFunction = eval(functor.toString());
+      return redefinedFunction(...arguments);
+    };
+    bindableFunction.toString = () => functor.toString();
+    return bindableFunction;
+  } else {
+    return functor;
+  }
+}
+
+/**
+ * Runs some magic to get a real functor which can be bound to the
+ * necessary context.
  */
 function getRealFunctor(functor) {
   const realFunctor = typeof functor === "string"
@@ -10,7 +35,7 @@ function getRealFunctor(functor) {
     throw `Incorrectly applied @pre, precondition function could not be found (${functor})`;
   }
 
-  return realFunctor.bind(this);
+  return bindable(realFunctor);
 }
 
 /**
