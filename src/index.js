@@ -66,7 +66,7 @@ function post(functor, reason) {
     descriptor.value = function(...args) {
       const realFunctor = getRealFunctor.call(this, functor);
       const originalResult = original.apply(this, args);
-      if (!realFunctor.apply(this, args))
+      if (!realFunctor.apply(this, [originalResult, ...args]))
         throw getReason(functor, reason);
       else
         return originalResult;
