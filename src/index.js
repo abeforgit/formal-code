@@ -14,6 +14,16 @@ function getRealFunctor(functor) {
 }
 
 /**
+ * Returns a reason which we can yield to users.
+ */
+function getReason(functor, reason) {
+  if (reason !== undefined)
+    return reason;
+  else
+    return functor.toString();
+}
+
+/**
  * Applies a pre-condition.
  *
  * The functor can be:
@@ -31,7 +41,7 @@ function pre(functor, reason) {
       const realFunctor = getRealFunctor.call(this, functor);
 
       if (!realFunctor.apply(this, args))
-        throw reason;
+        throw getReason(functor, reason);
       else
         return original.apply(this, args);
     };
@@ -57,7 +67,7 @@ function post(functor, reason) {
       const realFunctor = getRealFunctor.call(this, functor);
       const originalResult = original.apply(this, args);
       if (!realFunctor.apply(this, args))
-        throw reason;
+        throw getReason(functor, reason);
       else
         return originalResult;
     };
