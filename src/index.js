@@ -8,10 +8,10 @@
  * something easy to understand.
  */
 function bindable(functor) {
-  if( !functor.prototype ) {
+  if (!functor.prototype) {
     // it's an arrow-function and we will do trickery
     // https://stackoverflow.com/questions/33308121/can-you-bind-this-in-an-arrow-function
-    const bindableFunction = function () {
+    const bindableFunction = function() {
       const redefinedFunction = eval(functor.toString());
       return redefinedFunction(...arguments);
     };
@@ -39,13 +39,41 @@ function getRealFunctor(functor) {
 }
 
 /**
+ * Determines if a response seems to be async, in which case we should
+ * treat it differently.
+ *
+ * Due to transpiling, we have to check for duck typing.
+ *
+ * The options argument may force async to be true or false, in which
+ * case we follow that, otherwise we try to detect if this is a promise
+ * by checking for a .then, .catch and .finally on the response object.
+ */
+function isAsync(response, reason) {
+  if ( typeof reason  === "object" && reason.async !== undefined ) {
+    return reason.async;
+  } else if( typeof response === "object" ) {
+    return typeof response.then === "function"
+      && typeof response.catch === "function"
+      && typeof response.finally === "function";
+  } else {
+    return false;
+  }
+}
+
+/**
  * Returns a reason which we can yield to users.
+ *
+ * Reason might be an object with a "reason" property, in which case we
+ * yield that.  That allows us to treat the last argument as something
+ * that can yield options.
  */
 function getReason(functor, reason) {
-  if (reason !== undefined)
+  if (reason === undefined)
+    return functor.toString();
+  else if (typeof reason === "string")
     return reason;
   else
-    return functor.toString();
+    return reason.reason;
 }
 
 /**
@@ -91,10 +119,24 @@ function post(functor, reason) {
     descriptor.value = function(...args) {
       const realFunctor = getRealFunctor.call(this, functor);
       const originalResult = original.apply(this, args);
-      if (!realFunctor.apply(this, [originalResult, ...args]))
-        throw getReason(functor, reason);
-      else
-        return originalResult;
+
+      if (isAsync(originalResult, reason)) {
+        return new Promise((acc, rej) => {
+          originalResult
+            .then((promiseResult) => {
+              if (realFunctor.apply(this, [promiseResult, ...args]))
+                acc(promiseResult);
+              else
+                rej(getReason(functor, reason));
+            })
+            .catch((promiseFailure) => rej(promiseFailure));
+        });
+      } else {
+        if (!realFunctor.apply(this, [originalResult, ...args]))
+          throw getReason(functor, reason);
+        else
+          return originalResult;
+      }
     };
 
     return descriptor;
