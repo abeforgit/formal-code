@@ -1,0 +1,34 @@
+{
+  "name": "formal-code",
+  "version": "0.0.1",
+  "description": "Experimental decorator utilities for specifying pre/post conditions and similar design-by-contract tooling.",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "babel src -d dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redpencil.io/formal-js-code.git"
+  },
+  "keywords": [
+    "design-by-contract",
+    "preconditions",
+    "software-design"
+  ],
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "author": "Aad Versteden <aad.versteden@redpencil.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/redpencil.io/formal-js-code/issues"
+  },
+  "homepage": "https://github.com/redpencil.io/formal-js-code#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}

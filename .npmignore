@@ -1,0 +1,3 @@
+# Other files should be ignored by default, see https://npm.github.io/publishing-pkgs-docs/publishing/the-npmignore-file.html
+*~
+.log
