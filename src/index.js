@@ -68,12 +68,16 @@ function isAsync(response, reason) {
  * that can yield options.
  */
 function getReason(functor, reason) {
+  let message;
   if (reason === undefined)
-    return functor.toString();
+    message = functor.toString();
   else if (typeof reason === "string")
-    return reason;
+    message = reason;
   else
-    return reason.reason;
+    message = reason.reason;
+
+  console.trace( message );
+  return new Error(message);
 }
 
 /**
@@ -87,7 +91,7 @@ function getReason(functor, reason) {
  * An error is thrown if the pre-condition does not match.
  */
 function pre(functor, reason) {
-  return function(target, name, descriptor) {
+  return function(_target, _name, descriptor) {
     const original = descriptor.value;
 
     descriptor.value = function(...args) {
@@ -113,7 +117,7 @@ function pre(functor, reason) {
  * An error is thrown if the post-condition does not match.
  */
 function post(functor, reason) {
-  return function(target, name, descriptor) {
+  return function(_target, _name, descriptor) {
     const original = descriptor.value;
 
     descriptor.value = function(...args) {
