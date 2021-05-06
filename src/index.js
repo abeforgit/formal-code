@@ -49,9 +49,9 @@ function getRealFunctor(functor) {
  * by checking for a .then, .catch and .finally on the response object.
  */
 function isAsync(response, reason) {
-  if ( typeof reason  === "object" && reason.async !== undefined ) {
+  if (typeof reason === "object" && reason.async !== undefined) {
     return reason.async;
-  } else if( typeof response === "object" ) {
+  } else if (typeof response === "object") {
     return typeof response.then === "function"
       && typeof response.catch === "function"
       && typeof response.finally === "function";
@@ -76,8 +76,20 @@ function getReason(functor, reason) {
   else
     message = reason.reason;
 
-  console.trace( message );
-  return new Error(message);
+  return message;
+}
+
+/**
+ * Constructs an error object for a known failure and reports it to the
+ * console.
+ *
+ * @param {string} message The message to emit.
+ * @param {[any]} args Arguments given to the validation function.
+ * @return {Error} Object which can be thrown.
+ */
+function constructError(message, args) {
+  console.trace({ message, args });
+  return new Error({ message, args });
 }
 
 /**
@@ -98,7 +110,7 @@ function pre(functor, reason) {
       const realFunctor = getRealFunctor.call(this, functor);
 
       if (!realFunctor.apply(this, args))
-        throw getReason(functor, reason);
+        throw constructError(getReason(functor, reason), args);
       else
         return original.apply(this, args);
     };
@@ -131,13 +143,13 @@ function post(functor, reason) {
               if (realFunctor.apply(this, [promiseResult, ...args]))
                 acc(promiseResult);
               else
-                rej(getReason(functor, reason));
+                rej(constructError(getReason(functor, reason), [promiseResult, ...args]));
             })
             .catch((promiseFailure) => rej(promiseFailure));
         });
       } else {
         if (!realFunctor.apply(this, [originalResult, ...args]))
-          throw getReason(functor, reason);
+          throw constructError(getReason(functor, reason), [originalResult, ...args]);
         else
           return originalResult;
       }
