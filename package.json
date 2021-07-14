@@ -4,7 +4,6 @@
   "description": "Experimental decorator utilities for specifying pre/post conditions and similar design-by-contract tooling.",
   "main": "index.js",
   "scripts": {
-    "prepare": "babel src -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
